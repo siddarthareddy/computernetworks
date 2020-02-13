@@ -39,18 +39,13 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("ThirdScriptExample");
 void
-CourseChange (std::string context, Ptr<const MobilityModel> model)
-{
-  Vector position = model->GetPosition ();
-  NS_LOG_UNCOND (context <<
-    " x = " << position.x << ", y = " << position.y);
-}
+CourseChange (std::string context, Ptr<const MobilityModel> model);
 int 
 main (int argc, char *argv[])
 {
   bool verbose = true;
   uint32_t nCsma = 3;
-  uint32_t nWifi = 3;
+  uint32_t nWifi = 17;
   bool tracing = false;
 
   CommandLine cmd;
@@ -194,31 +189,13 @@ main (int argc, char *argv[])
 
   Config::Connect (oss.str (), MakeCallback  (&CourseChange));
   Simulator::Run ();
-
-
-
-  /* Adding a flow monitor to compute throughput */  
-  FlowMonitorHelper flowmon;
-  Ptr<FlowMonitor> monitor = flowmon.InstallAll();
-  
-  Simulator::Stop (Seconds (10.0));
-
-  Simulator::Run ();
-  
-/* Reading from the flow monitor */
-  monitor->CheckForLostPackets();
-  
-  Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier());
-  std::map<FlowId, FlowMonitor::FlowStats> stats = monitor->GetFlowStats();
-  
-  for(std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin(); i != stats.end(); ++i ){
-     Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-     std::cout << "Flow " << i->first << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
-     std::cout << "  Tx Packets: " << i->second.txPackets << "\n";
-     std::cout << "  Tx Bytes:   " << i->second.txBytes << "\n";
-     std::cout << "  Rx Bytes:   " << i->second.rxBytes << "\n";
-     std::cout << "  Throughput: " << i->second.rxBytes * 8.0 / (i->second.timeLastRxPacket.GetSeconds() - i->second.timeFirstTxPacket.GetSeconds()) / 1000 / 1000  << " Mbps\n";
-  }
   Simulator::Destroy ();
   return 0;
+}
+void
+CourseChange (std::string context, Ptr<const MobilityModel> model)
+{
+  Vector position = model->GetPosition ();
+  NS_LOG_UNCOND (context <<
+    " x = " << position.x << ", y = " << position.y);
 }
